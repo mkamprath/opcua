@@ -2258,7 +2258,14 @@ impl MethodService for Session {
             request_header: self.make_request_header(),
             methods_to_call,
         };
-        let response = self.send_request(request)?;
+        session_debug!(self, "call() sending request");
+        let response = match self.send_request(request) {
+            Err(error) => {
+                session_error!(self, "call() got an error sending request. error = {}", error);
+                return Err(error);
+            },
+            Ok(results) => results,
+        };
         if let SupportedMessage::CallResponse(response) = response {
             if let Some(mut results) = response.results {
                 if results.len() != 1 {
